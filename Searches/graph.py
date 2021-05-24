@@ -1,3 +1,5 @@
+separator = ""
+
 class Node:
     def __init__(self, n: str):
         self.name = n
@@ -20,26 +22,6 @@ class Edge:
 
     def __repr__(self):
         return f"Edge {self.start} -> {self.end} c: {self.cost}"
-
-
-class Graph:
-    def __init__(self, eds: list[tuple[str, str, int]], directed=True):
-        self.nodes = {}
-        self.edges = set()
-        for f, t, c in eds:
-            if f not in self.nodes: self.nodes[f] = Node(f)
-            if t not in self.nodes: self.nodes[t] = Node(t)
-            self.edges.add(Edge(self.nodes[f], self.nodes[t], c))
-            if not directed: self.edges.add(Edge(self.nodes[t], self.nodes[f], c))
-
-    def get_cost(self, start: Node, end: Node):
-        for edge in self.edges:
-            if edge.start == start and edge.end == end:
-                return edge.cost
-
-    def __repr__(self):
-        return f"Graph Edges: {self.edges}"
-
 
 
 class TreeNode:
@@ -88,4 +70,42 @@ class Path:
         self.end = new
 
     def __repr__(self):
-        return "<" + ", ".join(f"{n.name}" for n in self.path) + f"> {self.cost + self.heuristic}"
+        return "<" + separator.join(f"{n.name}" for n in self.path) + ">"
+
+    def weight(self):
+        return self.cost + self.heuristic
+
+
+from graph_searches import LCFGraphSearcher
+
+
+class Graph:
+    def __init__(self, eds: list[tuple[str, str, int]], directed=True):
+        self.nodes = {}
+        self.edges = set()
+        for f, t, c in eds:
+            if f not in self.nodes: self.nodes[f] = Node(f)
+            if t not in self.nodes: self.nodes[t] = Node(t)
+            self.edges.add(Edge(self.nodes[f], self.nodes[t], c))
+            if not directed: self.edges.add(Edge(self.nodes[t], self.nodes[f], c))
+
+    def get_cost(self, start: Node, end: Node):
+        for edge in self.edges:
+            if edge.start == start and edge.end == end:
+                return edge.cost
+
+    def __repr__(self):
+        return f"Graph Edges: {self.edges}"
+
+    def admissible_heuristic(self, es: str, h):
+        # Very lazy approach
+        if h is None: heuristic = lambda x: 0
+        elif isinstance(h, dict): heuristic = lambda x: h[x.name]
+        else: heuristic = h
+
+        print("\nNode    h   Cost  h <= cost")
+        for name, node in self.nodes.items():
+            s = LCFGraphSearcher(self, name, es)
+            s.verbose = False
+            p = s.search()
+            print(name.ljust(7), str(heuristic(node)).ljust(4), str(p.cost).ljust(4), heuristic(node) <= p.cost)

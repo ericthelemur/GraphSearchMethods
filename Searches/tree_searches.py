@@ -13,13 +13,16 @@ class TreeSearcher:
         # If single goal, wrap in list
         if isinstance(gs, str): gs = [gs]
         self.goals = set([self.graph.nodes[n] for n in gs])
+        self.iterations = 0
 
 
     def search(self, cycle_checking=True, early_exit=True):
         if cycle_checking: print("Assuming can omit child nodes of choice that are ancestors of choice in the search tree (cycle pruning).")
         print("Assuming tied costs broken alphabetically.")
+        self.iterations = 0
 
         while True:
+            self.iterations += 1
             if not self.candidates:
                 self.exhaust_print(early_exit)
                 self.final_print()
@@ -67,6 +70,7 @@ class TreeSearcher:
         print("PATH:", choice.ancestors() + [choice.node], choice.cost)
 
     def final_print(self):
+        print("Nodes expanded:", self.iterations)
         print("\nSearch Tree:")
         print(self.search_tree)
 

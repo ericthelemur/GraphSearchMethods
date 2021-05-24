@@ -1,10 +1,11 @@
-from typing import Union, Callable
+from typing import Union
 
 from graph import *
 
 
 class GraphSearcher:
-    def __init__(self, g: Graph, ss: Union[str, list[str]], gs: Union[str, list[str]]):
+    def __init__(self, g, ss: Union[str, list[str]], gs: Union[str, list[str]]):
+        self.verbose = True
         self.graph = g
 
         if isinstance(ss, str): ss = [ss]
@@ -16,9 +17,13 @@ class GraphSearcher:
         if isinstance(gs, str): gs = [gs]
         self.goals = set([self.graph.nodes[n] for n in gs])
 
+        self.table: list[tuple[Path, list[Node], list[Path], list[Path]]] = []
+        self.iter_prune = []
+
 
     def search(self, cycle_checking=True, early_exit=True, closed_prune=True):
-        print("Assuming tied costs broken alphabetically.")
+        if self.verbose: print("Assuming tied costs broken alphabetically.")
+        self.iter_print("-")
         while True:
             if not self.frontier:
                 self.exhaust_print(early_exit)
@@ -28,22 +33,26 @@ class GraphSearcher:
 
             if closed_prune and choice.end in self.closed:
                 self.prune_print(choice)
+                self.iter_print("-")
                 continue
             if choice.end not in self.closed: self.closed.append(choice.end)
 
             # If done, output and end
             if choice.end in self.goals:
-                if early_exit: self.iter_print(choice)
+                if early_exit:
+                    self.iter_print(choice)
+                    self.final_print()
                 self.route_print(choice)
                 if early_exit:
-                    self.final_print()
-                    return
+                    return choice
 
             if len(choice.path) >= 2: prev = choice.path[-2]
             else: prev = None
             for e in choice.end.out_edges:
                 # Exclude source node
-                if prev and e.end == prev: continue
+                if (prev and e.end == prev) or (closed_prune and e.end in self.closed):
+                    self.prune_print(Path(choice, e.end))
+                    continue
                 # Specific case in seminar question S1Q1, assumed general - omitting ancestors from expansion
                 if cycle_checking and e.end in choice.path: continue
 
@@ -66,23 +75,32 @@ class GraphSearcher:
 
 
     def iter_print(self, choice: Path):
-        print("Explored", str(choice).ljust(20, "."),
-              str(self.closed).ljust(30, "."),
-              "[", ", ".join(str(p) for p in self.frontier), "]")
+        self.table.append((choice, self.closed.copy(), self.frontier.copy(), self.iter_prune.copy()))
+        self.iter_prune = []
 
     def prune_print(self, choice: Path):
-        print("Pruned  ", str(choice).ljust(20, "."),
-              str(self.closed).ljust(30, "."),
-              "[", ", ".join(str(p) for p in self.frontier), "]")
+        self.iter_prune.append(choice)
 
     def route_print(self, choice):
         # What is printed when a route is found
-        print("PATH:", choice)
+        if self.verbose: print("PATH:", choice, choice.cost)
 
     def final_print(self):
-        pass
+        if not self.verbose: return
+        widths = [10, 10, 30, 0]
+        print("Expanded".ljust(widths[0]), "Closed".ljust(widths[1]), "Pruned".ljust(widths[2]), "Frontier".ljust(widths[3]))
+
+        for choice, closed, frontier, pruned in self.table:
+            print(str(choice).ljust(widths[0], "."),
+                  separator.join(map(str, closed)).ljust(widths[1], "."),
+                  (", ".join(str(p) for p in pruned)).ljust(widths[2], "."),
+                  "[", ", ".join(f"{p} {p.weight()}" for p in frontier), "]"
+                  )
+        print("Pruned:", sum(len(pr) for _, _, _, pr in self.table), "Explored:", sum(1 for ex, _, _, _ in self.table if isinstance(ex, Path)))
+
 
     def exhaust_print(self, early_exit):
+        if not self.verbose: return
         if not early_exit: print("Any paths printed previously")
         else: print("No Path")
 
@@ -128,7 +146,7 @@ class LCFGraphSearcher(GraphSearcher):
 
 
 class GBFHeuristicGraphSearcher(GraphSearcher):
-    def __init__(self, g: Graph, ss: Union[str, list[str]], gs: Union[str, list[str]], heuristic):
+    def __init__(self, g, ss: Union[str, list[str]], gs: Union[str, list[str]], heuristic):
         super().__init__(g, ss, gs)
 
         if heuristic is None: self.heuristic = lambda x: 0
@@ -147,6 +165,25 @@ class GBFHeuristicGraphSearcher(GraphSearcher):
 
         self.frontier.append(p)
         self.frontier.sort(key=lambda p: (p.heuristic, p.end.name))
+
+
+    def final_print(self):
+        if not self.verbose: return
+        widths = [10, 10, 30, 0]
+        print("Expanded".ljust(widths[0]), "Closed".ljust(widths[1]), "Pruned".ljust(widths[2]),
+              "Frontier".ljust(widths[3]))
+
+        prev_frontier = []
+        for choice, closed, frontier, pruned in self.table:
+            heur_str = {p: "" if p in prev_frontier else f"{p.cost} + {p.heuristic} = " for p in frontier}
+            print(str(choice).ljust(widths[0], "."),
+                  separator.join(map(str, closed)).ljust(widths[1], "."),
+                  (", ".join(str(p) for p in pruned)).ljust(widths[2], "."),
+                  "[", ", ".join(f"{p} {heur_str[p]}{p.weight()}" for p in frontier), "]"
+                  )
+            prev_frontier = frontier
+        print("Pruned:", sum(len(pr) for _, _, _, pr in self.table),
+              "Explored:", sum(1 for ex, _, _, _ in self.table if isinstance(ex, Path)))
 
 
 class AStarGraphSearcher(GBFHeuristicGraphSearcher):
