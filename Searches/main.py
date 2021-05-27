@@ -3,43 +3,22 @@ from graph_searches import *
 from tree_searches import *
 
 g = Graph([
-    # ("A", "B", 5),
-    # ("A", "C", 2),
-    # ("A", "E", 3),
-    # ("B", "E", 3),
-    # ("B", "G", 5),
-    # ("C", "D", 2),
-    # ("D", "H", 4),
-    # ("D", "I", 4),
-    # ("E", "F", 2),
-    # ("H", "I", 4),
-    # ("H", "J", 4),
-    (*"AB", 11),
-    (*"AC", 7),
-    (*"AD", 13),
-    (*"BE", 7),
-    (*"CD", 9),
-    (*"CE", 14),
-    (*"DF", 10),
-    (*"DG", 5),
-    (*"EH", 10),
-    (*"FH", 10),
-    (*"HI", 6),
+    (*"AB", 10),
+    (*"AC", 8),
+    (*"AD", 12),
+    (*"BE", 8),
+    (*"CD", 10),
+    (*"CE", 16),
+    (*"DF", 12),
+    (*"DG", 14),
+    (*"EH", 11),
+    (*"FH", 11),
+    (*"HI", 2),
 ], directed=False)
 print(g)
 print("\n\n")
 
 h1 = {
-    # "A": 10,
-    # "B": 6,
-    # "C": 8,
-    # "D": 5,
-    # "E": 5,
-    # "F": 3,
-    # "G": 1,
-    # "H": 3,
-    # "I": 4,
-    # "J": 0,
     "A": 34,
     "B": 23,
     "C": 30,
@@ -51,21 +30,10 @@ h1 = {
     "I": 0,
 }
 
-h2 = {
-    "A": 24,
-    "B": 28,
-    "C": 24,
-    "D": 38,
-    "E": 17,
-    "F": 16,
-    "G": 85,
-    "H": 7,
-    "I": 0,
-}
 
 # Available options are DFS, BFS and LCF for both Tree and Graph
 # GBFHeuristic and AStar for Graph only, heuristic param can be either function on Node or dict
-s = AStarGraphSearcher(g, "A", "I", h1)
+s = LCFGraphSearcher(g, "A", "I")
 # Options:
 #   cycle_checking - cycle checking + pruning, not guaranteed, esp on tree search, is in seminars however
 #   early_exit - exit on finding route, not optimal for DFS
@@ -73,7 +41,7 @@ s = AStarGraphSearcher(g, "A", "I", h1)
 s.search()
 
 # A admissible heuristic function is also provided, which calculates the distance from all nodes to the goal, and compares that to the given heuristic
-g.admissible_heuristic("I", h2)
+# g.admissible_heuristic("I", h2)
 
 # S1Q1
 # s = LCFTreeSearcher(g, "A", "J")
