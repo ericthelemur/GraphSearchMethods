@@ -1,4 +1,5 @@
 from typing import Callable, Any, Iterable, Union
+import inspect
 
 
 class Variable:
@@ -22,6 +23,19 @@ class Constraint:
             v.constraints.append(self)
         self.constraint = constraint
 
+    def __repr__(self):
+        return f"Constraint {self.constraint_to_str()}"
+
+
+    def constraint_to_str(self):
+        # Rough untangling of lambda using inspect package. Unreliable at best
+        src = str(inspect.getsourcelines(self.constraint)[0]).strip()
+        vars, op = src.split("lambda ")[1].split("\\n']")[0].split(")")[0].split(": ")
+        vars = vars.split(", ")
+        for k, v in zip(self.variables, vars):
+            op = op.replace(v, k.name)
+
+        return op
 
 
 class BackTrackingCSP:
@@ -31,7 +45,7 @@ class BackTrackingCSP:
 
 
     def solve(self) -> bool:
-        print(" "*15, end="  ")
+        print("Domain cons".ljust(15), end="  ")
         for var in self.variables.values():
             print(str(var.name).ljust(15), end=" ")
         print()
