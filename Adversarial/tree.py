@@ -1,7 +1,8 @@
-from math import log
+from math import log, ceil, floor
+
 
 class Node:
-    def __init__(self, parent):
+    def __init__(self, parent, value=None):
         if parent is not None:
             self.parent = parent
             self.player = not parent.player
@@ -11,12 +12,19 @@ class Node:
             self.parent = None
             self.player = True
         self.children = []
-        self.value = None
+        self.value = value
         self.chosen = None
         self.pruned = True
+        self.alpha = None
+        self.beta = None
 
-    def __repr__(self):
-        return f"{self.value}"
+    def __str__(self):
+        if self.pruned: return "-Pr-"
+        if any(c.pruned for c in self.children):
+            if self.player: return str(self.value) + "<="
+            else: return "<=" + str(self.value)
+        if self.parent and self.parent.chosen == self: return ">" + str(self.value) + "<"
+        return str(self.value)
 
     def indent_print(self, depth=0, prefix="", last=False, prune=False):
         # Bit of a mess, prints the tree in a directory list style
@@ -30,6 +38,40 @@ class Node:
             s += n.indent_print(depth + 1, new_prefix, prune=prune)
         s += self.children[0].indent_print(depth + 1, new_prefix, True, prune=prune)
         return s
+
+    def tree_print(self):
+        print("Many be horribly mangled")
+        for line in self.get_lines():
+            print(line)
+
+    def get_lines(self):
+        if self.pruned: return [str(self)]
+        if not self.children: return [str(self)]
+        child_lines = [c.get_lines() for c in self.children]
+
+        return self.merge(str(self), child_lines)
+
+
+    def merge(self, parent: str, children: list[list[str]]):
+        widths = [len(c[0])+1 for c in children]
+        lines = [parent.center(sum(widths)), "|".center(sum(widths))]
+
+        bar = " " * (floor(widths[0]/2)-1) + "┌"
+        for i in range(1, len(widths)):
+            if i > 1: bar += "┬"
+            bar += "─" * (ceil(widths[i-1]/2.0) + floor(widths[i]/2.0)-1)
+        bar += "┐" + (" " * (ceil(widths[-1]/2)-1))
+
+        if len(children) != 1: lines.append(bar)
+        else: lines.append("|".center(sum(widths)))
+        comb_lines = ["" for _ in range(max(map(len, children)))]
+
+        for i, c in enumerate(children):
+            for j in range(len(comb_lines)):
+                if j < len(c): comb_lines[j] += c[j].center(widths[i]-1) + " "
+                else: comb_lines[j] += " "*(widths[i])
+
+        return lines + comb_lines
 
 
 

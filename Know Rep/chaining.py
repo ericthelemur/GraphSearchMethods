@@ -1,3 +1,4 @@
+from math import floor, ceil
 from typing import Iterable
 
 class Node:
@@ -35,6 +36,39 @@ class Node:
             s += n.indent_print(depth + 1, new_prefix, prune=prune)
         s += self.children[0].indent_print(depth + 1, new_prefix, True, prune=prune)
         return s
+
+    def tree_print(self):
+        print("Many be horribly mangled")
+        for line in self.get_lines():
+            print(line)
+
+    def get_lines(self):
+        if not self.children: return [str(self)]
+        child_lines = [c.get_lines() for c in self.children]
+
+        return self.merge(str(self), child_lines)
+
+
+    def merge(self, parent: str, children: list[list[str]]):
+        widths = [len(c[0])+1 for c in children]
+
+        lines = [parent.center(sum(widths)), "|".center(sum(widths))]
+        bar = " " * (floor(widths[0]/2)-1) + "┌"
+        for i in range(1, len(widths)):
+            if i > 1: bar += "┬"
+            bar += "─" * (ceil(widths[i-1]/2.0) + floor(widths[i]/2.0)-1)
+        bar += "┐" + (" " * (ceil(widths[-1]/2)-1))
+
+        if len(children) != 1: lines.append(bar)
+        else: lines.append("|".center(sum(widths)))
+        comb_lines = ["" for _ in range(max(map(len, children)))]
+
+        for i, c in enumerate(children):
+            for j in range(len(comb_lines)):
+                if j < len(c): comb_lines[j] += c[j].center(widths[i]-1) + " "
+                else: comb_lines[j] += " "*(widths[i])
+
+        return lines + comb_lines
 
 
 class Impl:
@@ -78,6 +112,7 @@ class BackwardChain:
             if verbose:
                 print()
                 print(best.indent_print())
+                best.tree_print()
         return best.cost
 
     def construct_rules(self, parent: Node, verbose=True):

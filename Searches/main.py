@@ -82,7 +82,7 @@ h1 = {
     "H": 7,
     "I": 0,
 }
-s = GBFHeuristicGraphSearcher(g, "A", "I", h1)
+s = LCFTreeSearcher(g, "A", "I")
 s.search()
 
 # Available options are DFS, BFS and LCF for both Tree and Graph

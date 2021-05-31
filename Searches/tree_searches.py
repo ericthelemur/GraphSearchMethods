@@ -75,7 +75,8 @@ class TreeSearcher:
         print("Nodes expanded:", self.iterations)
         print("\nSearch Tree:")
         print("Numbered nodes show order of expansion. Non-numbered nodes were added to the queue, but never expanded.")
-        print(self.search_tree)
+        print(self.search_tree.indent_print())
+        self.search_tree.tree_print()
 
     def exhaust_print(self, early_exit):
         if not early_exit: print("Any paths printed previously")

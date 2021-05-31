@@ -14,3 +14,5 @@ t = construct_balanced_tree([8, 4, 2, 7, 6, 10, 3, 5, 5, 9, 1, 8, 7, 3, 9, 2], 2
 
 m = ABMinimax(t)
 m.minimax()
+
+m.tree.tree_print()

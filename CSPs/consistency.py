@@ -43,6 +43,7 @@ def arc_consistency(csp: BackTrackingCSP):
             var.domain = [v for v in var.domain if v not in remove]
 
             print_line(csp)
+    print("May try a second round, if values removed")
 
 
 def try_val(c, var, val, other, asss):
