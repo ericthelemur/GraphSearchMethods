@@ -22,3 +22,20 @@ b.solve("I")
 
 # f = ForwardChain(known, rules)
 # f.solve("L")
+
+
+# 2020
+# known = ["A"]
+#
+# rules = [
+#     Impl("A", "E"),
+#     Impl("B", "C"),
+#     Impl("B", "D"),
+#     Impl("CE", "Z"),
+#     Impl("E", "F"),
+#     Impl("E", "B"),
+#     Impl("F", "G"),
+# ]
+#
+# b = ForwardChain(known, rules)
+# b.solve("Z")

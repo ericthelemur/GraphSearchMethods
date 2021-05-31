@@ -28,10 +28,12 @@ class TreeSearcher:
                 self.final_print()
                 return None
             choice = self.strategy()
+            choice.position = self.iterations
 
             # If done, output and end
             if choice.node in self.goals:
-                if early_exit: self.iter_print(choice)
+                if not early_exit: self.iter_print(choice)
+                else: print(str(self.iterations).ljust(3), choice.node.name.ljust(3), "Goal Reached")
                 self.route_print(choice)
                 if early_exit:
                     self.final_print()
@@ -63,7 +65,7 @@ class TreeSearcher:
 
 
     def iter_print(self, choice: TreeNode):
-        print(choice.node.name.ljust(3), "[", ", ".join(f"{c.node.name}: {c.cost}" for c in self.candidates), "]")
+        print(str(self.iterations).ljust(3), choice.node.name.ljust(3), "[", ", ".join(f"{c.node.name}: {c.cost}" for c in self.candidates), "]")
 
     def route_print(self, choice):
         # What is printed when a route is found
@@ -72,6 +74,7 @@ class TreeSearcher:
     def final_print(self):
         print("Nodes expanded:", self.iterations)
         print("\nSearch Tree:")
+        print("Numbered nodes show order of expansion. Non-numbered nodes were added to the queue, but never expanded.")
         print(self.search_tree)
 
     def exhaust_print(self, early_exit):
@@ -101,6 +104,7 @@ class BFSTreeSearcher(TreeSearcher):
 
 
 class LCFTreeSearcher(TreeSearcher):
+
     def strategy(self) -> TreeNode:
         # Expand lowest-cost first
         choice = self.candidates.pop(0)
@@ -109,6 +113,7 @@ class LCFTreeSearcher(TreeSearcher):
     def add_strategy(self, source: TreeNode, edge: Edge):
         # Calc cost
         c = source.cost + edge.cost
+
         t: TreeNode = TreeNode(edge.end, source, c)
 
         self.candidates.append(t)

@@ -27,7 +27,7 @@ class GraphSearcher:
         while True:
             if not self.frontier:
                 self.exhaust_print(early_exit)
-                self.final_print()
+                self.final_print(None)
                 return None
             choice = self.strategy()
 
@@ -39,9 +39,8 @@ class GraphSearcher:
 
             # If done, output and end
             if choice.end in self.goals:
-                if early_exit:
-                    self.iter_print(choice)
-                    self.final_print()
+                if early_exit: self.final_print(choice)
+                else: self.iter_print(choice)
                 self.route_print(choice)
                 if early_exit:
                     return choice
@@ -75,7 +74,7 @@ class GraphSearcher:
 
 
     def iter_print(self, choice: Path):
-        self.table.append((choice, self.closed.copy(), self.frontier.copy(), self.iter_prune.copy()))
+        self.table.append((choice, self.closed.copy(), self.iter_prune.copy(), self.frontier.copy()))
         self.iter_prune = []
 
     def prune_print(self, choice: Path):
@@ -85,18 +84,28 @@ class GraphSearcher:
         # What is printed when a route is found
         if self.verbose: print("PATH:", choice, choice.cost)
 
-    def final_print(self):
+    def final_print(self, choice):
         if not self.verbose: return
-        widths = [10, 10, 30, 0]
+
+        widths = [10, 10, 10, 10]
+        for row in self.table:
+            for i, v in enumerate(row):
+                l = len(str(v))
+                if i == 1: l = len(separator.join(map(str, v)))
+                if i == 2: l = len(", ".join(str(p) for p in v))
+                if l > widths[i]: widths[i] = l
+
         print("Expanded".ljust(widths[0]), "Closed".ljust(widths[1]), "Pruned".ljust(widths[2]), "Frontier".ljust(widths[3]))
 
-        for choice, closed, frontier, pruned in self.table:
+        for choice, closed, pruned, frontier in self.table:
             print(str(choice).ljust(widths[0], "."),
                   separator.join(map(str, closed)).ljust(widths[1], "."),
                   (", ".join(str(p) for p in pruned)).ljust(widths[2], "."),
                   "[", ", ".join(f"{p} {p.weight()}" for p in frontier), "]"
                   )
-        print("Pruned:", sum(len(pr) for _, _, _, pr in self.table), "Explored:", sum(1 for ex, _, _, _ in self.table if isinstance(ex, Path)))
+
+        print(str(choice).ljust(widths[0], "."), "Goal Reached")
+        print("Pruned:", sum(len(pr) for _, _, pr, _ in self.table), "Explored:", sum(1 for ex, _, _, _ in self.table if isinstance(ex, Path)))
 
 
     def exhaust_print(self, early_exit):
@@ -161,20 +170,29 @@ class GBFHeuristicGraphSearcher(GraphSearcher):
 
     def add_strategy(self, source: Path, edge: Edge):
         h = self.heuristic(edge.end)
-        p = Path(source, edge.end, 0, h)
+        c = source.cost + edge.cost
+        p = Path(source, edge.end, c, h)
 
         self.frontier.append(p)
         self.frontier.sort(key=lambda p: (p.heuristic, p.end.name))
 
 
-    def final_print(self):
+    def final_print(self, choice):
         if not self.verbose: return
-        widths = [10, 10, 30, 0]
+        widths = [10, 10, 10, 10]
+
+        for row in self.table:
+            for i, v in enumerate(row):
+                l = len(str(v))
+                if i == 1: l = len(separator.join(map(str, v)))
+                if i == 2: l = len(", ".join(str(p) for p in v))
+                if l > widths[i]: widths[i] = l
+
         print("Expanded".ljust(widths[0]), "Closed".ljust(widths[1]), "Pruned".ljust(widths[2]),
               "Frontier".ljust(widths[3]))
 
         prev_frontier = []
-        for choice, closed, frontier, pruned in self.table:
+        for choice, closed, pruned, frontier in self.table:
             heur_str = {p: "" if p in prev_frontier else f"{p.cost} + {p.heuristic} = " for p in frontier}
             print(str(choice).ljust(widths[0], "."),
                   separator.join(map(str, closed)).ljust(widths[1], "."),
@@ -182,7 +200,10 @@ class GBFHeuristicGraphSearcher(GraphSearcher):
                   "[", ", ".join(f"{p} {heur_str[p]}{p.weight()}" for p in frontier), "]"
                   )
             prev_frontier = frontier
-        print("Pruned:", sum(len(pr) for _, _, _, pr in self.table),
+
+        print(str(choice).ljust(widths[0], "."), "Goal Reached")
+
+        print("Pruned:", sum(len(pr) for _, _, pr, _ in self.table),
               "Explored:", sum(1 for ex, _, _, _ in self.table if isinstance(ex, Path)))
 
 

@@ -32,6 +32,7 @@ class TreeNode:
         if self.parent: self.parent.children.append(self)
         self.children = []
         self.cost = cost
+        self.position = -1
 
     def __repr__(self):
         return self.indent_print()
@@ -41,7 +42,7 @@ class TreeNode:
         line_start = "" if not depth else ("└─" if last else "├─")
         new_prefix = "" if not depth else (prefix + (": " if last else "│ "))
 
-        s = prefix + line_start + str(self.node) + (" " + str(self.cost) if costs else "") + "\n"
+        s = prefix + line_start + (str(self.position) + " " if self.position != -1 else "") +  str(self.node) + (" " + str(self.cost) if costs else "") + "\n"
         if not self.children: return s
         for n in self.children[:-1]:
             s += n.indent_print(depth + 1, new_prefix)

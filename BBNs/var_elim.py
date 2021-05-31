@@ -4,11 +4,11 @@ class Factor:
     def __init__(self, vars, vals: list):
         self.vars = list(vars)
         self.vals = vals
-        print(len(self.vals), (2 ** (len(self.vars)-1)), len(self.vals), len(self.vars))
-        if len(self.vals) != (2 ** (len(self.vars)-1)):
+        print(len(self.vals), (2 ** (len(self.vars)-1)))
+        if len(self.vals) == (2 ** (len(self.vars)-1)):
             self.vals += [1 - v for v in self.vals]
 
-        if len(self.vals) != 2 ** len(self.vars):
+        if len(self.vals) != (2 ** len(self.vars)):
             raise Exception("Mismatching # vals and # vars")
         self.index = len(f)+1
         f.append(self)
