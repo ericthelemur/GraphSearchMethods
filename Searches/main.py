@@ -82,7 +82,7 @@ h1 = {
     "H": 7,
     "I": 0,
 }
-s = LCFTreeSearcher(g, "A", "I")
+s = LCFGraphSearcher(g, "A", "I")
 s.search()
 
 # Available options are DFS, BFS and LCF for both Tree and Graph

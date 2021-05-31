@@ -31,12 +31,6 @@ class GraphSearcher:
                 return None
             choice = self.strategy()
 
-            if closed_prune and choice.end in self.closed:
-                self.prune_print(choice)
-                self.iter_print("-")
-                continue
-            if choice.end not in self.closed: self.closed.append(choice.end)
-
             # If done, output and end
             if choice.end in self.goals:
                 if early_exit: self.final_print(choice)
@@ -44,6 +38,13 @@ class GraphSearcher:
                 self.route_print(choice)
                 if early_exit:
                     return choice
+
+            if closed_prune and choice.end in self.closed:
+                self.prune_print(choice)
+                self.iter_print("-")
+                continue
+            if choice.end not in self.closed: self.closed.append(choice.end)
+
 
             if len(choice.path) >= 2: prev = choice.path[-2]
             else: prev = None
@@ -57,6 +58,7 @@ class GraphSearcher:
 
                 self.add_strategy(choice, e)
             self.iter_print(choice)
+
 
 
     def strategy(self) -> Path:
@@ -84,7 +86,7 @@ class GraphSearcher:
         # What is printed when a route is found
         if self.verbose: print("PATH:", choice, choice.cost)
 
-    def final_print(self, choice):
+    def final_print(self, c):
         if not self.verbose: return
 
         widths = [10, 10, 10, 10]
@@ -104,7 +106,7 @@ class GraphSearcher:
                   "[", ", ".join(f"{p} {p.weight()}" for p in frontier), "]"
                   )
 
-        print(str(choice).ljust(widths[0], "."), "Goal Reached")
+        print(str(c).ljust(widths[0], "."), "Goal Reached")
         print("Pruned:", sum(len(pr) for _, _, pr, _ in self.table), "Explored:", sum(1 for ex, _, _, _ in self.table if isinstance(ex, Path)))
 
 
